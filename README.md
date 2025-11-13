@@ -21,7 +21,8 @@ This app lets users view, search, and interact with a list of contacts. You can 
 2. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/shefkiees/ContactList.git
+
 ```
 3. Navigate into the project folder:
 
