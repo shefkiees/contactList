@@ -51,19 +51,17 @@ npm start
 ## Screenshots
 
 **Contacts List**  
-![Contacts List](./data/scr1.png)
+![Contacts List](./data/src1.PNG)
 
 **Contact Details**  
-![Contacts List](./data/scr2.png)
+![Contacts List](./data/src2.PNG)
 
 **Contact Details**  
-![Contacts List](./data/scr3.png)
+![Contacts List](./data/src3.PNG)
 
 **Contact Details**  
-![Contacts List](./data/scr4.png)
+![Contacts List](./data/src4.PNG)
 
-**Contact Details**  
-![Contacts List](./data/scr5.png)
 
 
 
