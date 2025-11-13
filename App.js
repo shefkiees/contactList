@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { StatusBar } from "expo-status-bar";
 import { 
     StyleSheet, 
     Text, 
     View, 
-    FlatList, 
+    SectionList, 
     Image, 
     Alert, 
     TouchableOpacity,
@@ -87,6 +87,26 @@ const getContactCountText = (count) => {
     return `${count} Contacts`;
 };
 
+const groupContactsByFirstLetter = (contacts) => {
+    const sortedContacts = contacts.sort((a, b) => a.name.localeCompare(b.name));
+
+    const grouped = sortedContacts.reduce((acc, contact) => {
+        const firstLetter = contact.name.charAt(0).toUpperCase();
+        if (!acc[firstLetter]) {
+            acc[firstLetter] = [];
+        }
+        acc[firstLetter].push(contact);
+        return acc;
+    }, {});
+
+    const sections = Object.keys(grouped).sort().map(letter => ({
+        title: letter,
+        data: grouped[letter],
+    }));
+
+    return sections;
+};
+
 export default function App() {
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -133,14 +153,16 @@ export default function App() {
         return contact.name.toLowerCase().includes(term) ||
                contact.phone.includes(searchTerm) || 
                contact.email.toLowerCase().includes(term);
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    const groupedContacts = useMemo(() => groupContactsByFirstLetter(filteredContacts), [filteredContacts]);
 
     const handleClearSearch = () => setSearchTerm('');
     
     const contactCountText = getContactCountText(filteredContacts.length); 
 
     const renderItem = ({ item }) => (
-        <View style={{ marginBottom: 16 }}>
+        <View style={{ marginBottom: 10 }}> 
             <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
                 <View style={styles.avatarContainer}>
                     <Image source={{ uri: item.avatar }} style={styles.avatar} />
@@ -184,6 +206,16 @@ export default function App() {
             </TouchableOpacity>
         </View>
     );
+    
+    const renderSectionHeader = ({ section: { title } }) => (
+        <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionHeaderText}>
+                {title}
+            </Text>
+        </View>
+    );
+    
+    const listHasContent = groupedContacts.length > 0;
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -222,18 +254,21 @@ export default function App() {
 
                 <Text style={styles.listSubtitle}>{contactCountText}</Text> 
 
-                <FlatList
-                    data={filteredContacts}
+                <SectionList
+                    sections={groupedContacts} 
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
+                    renderSectionHeader={renderSectionHeader} 
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 20 }}
+                    contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 0 }} 
+                    stickySectionHeadersEnabled 
                     ListEmptyComponent={() => (
                         <View style={styles.emptyContainer}>
                             <Ionicons name="people-outline" size={60} color={Colors.separator} style={{ marginBottom: 15 }} />
                             <Text style={styles.emptyText}>No contacts found matching your search.</Text>
                         </View>
                     )}
+                    ListFooterComponent={!listHasContent && searchTerm.length > 0 ? <View style={{ height: 200 }} /> : null}
                 />
             </View>
             <StatusBar style="dark" /> 
@@ -249,7 +284,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.background,
-        paddingHorizontal: 15,
         paddingTop: Platform.OS === 'android' ? 25 : 0, 
     },
     headerContainer: {
@@ -258,6 +292,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: 8,
         height: 40, 
+        paddingHorizontal: 15,
     },
     headerTitleGroup: {
         flexDirection: 'row',
@@ -302,7 +337,8 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 5,
         borderWidth: 1,
-        borderColor: Colors.separator, 
+        borderColor: Colors.separator,
+        marginHorizontal: 15,
     },
     searchInput: {
         flex: 1,
@@ -316,7 +352,23 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         fontSize: 14,
         fontWeight: '600',
-        paddingLeft: 5,
+        paddingLeft: 20,
+    },
+    sectionHeaderContainer: {
+        backgroundColor: Colors.background, 
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.separator,
+        borderTopWidth: StyleSheet.hairlineWidth, 
+        borderTopColor: Colors.separator,
+        zIndex: 10,
+    },
+    sectionHeaderText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.primary, 
+        textTransform: 'uppercase',
     },
     card: {
         flexDirection: "row",
@@ -332,6 +384,7 @@ const styles = StyleSheet.create({
         elevation: 3,
         borderWidth: 1,
         borderColor: Colors.separator, 
+        marginHorizontal: 15,
     },
     avatarContainer: {
         width: 55, 
@@ -393,6 +446,7 @@ const styles = StyleSheet.create({
     emptyContainer: {
         alignItems: 'center',
         paddingVertical: 80, 
+        marginHorizontal: 15,
     },
     emptyText: {
         fontSize: 16,
